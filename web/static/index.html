@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+  <head>
+
+    <meta charset="UTF-8" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>Movie Companion</title>
+
+    <link rel="stylesheet" href="/static/styles.css?v=20241042" />
+
+  </head>
+
+  <body>
+
+    <header class="top-bar">
+
+      <div class="brand">
+
+        <h1>Movie Companion</h1>
+
+        <p>Friendly, spoiler-safe answers while you watch.</p>
+
+      </div>
+
+      <div class="controls">
+
+        <div class="library-control">
+
+          <label class="sr-only" for="library-toggle">Library</label>
+
+          <div class="library-dropdown" id="library-dropdown">
+
+            <button
+
+              type="button"
+
+              id="library-toggle"
+
+              class="library-toggle"
+
+              aria-haspopup="listbox"
+
+              aria-expanded="false">
+
+              <span id="library-selected" class="library-selected">Select a video...</span>
+
+              <span class="library-chevron" aria-hidden="true"></span>
+
+            </button>
+
+            <ul
+
+              id="library-menu"
+
+              class="library-menu"
+
+              role="listbox"
+
+              aria-labelledby="library-toggle">
+
+            </ul>
+
+          </div>
+
+        </div>
+
+        <button id="toggle-upload" class="secondary" type="button">Upload New</button>
+
+      </div>
+
+    </header>
+
+    <section id="upload-panel" class="hidden">
+
+      <form id="upload-form">
+
+        <div class="form-grid">
+
+          <label>
+
+            Title
+
+            <input type="text" name="title" required />
+
+          </label>
+
+          <label>
+
+            Video file
+
+            <input type="file" name="video" accept="video/*" required />
+
+          </label>
+
+          <label>
+
+            Subtitle file (.srt)
+
+            <input type="file" name="subtitles" accept=".srt" />
+
+          </label>
+
+        </div>
+
+        <div class="form-actions">
+
+          <button type="submit">Upload to Library</button>
+
+          <button type="button" id="cancel-upload" class="secondary">Cancel</button>
+
+        </div>
+
+        <p id="upload-status" aria-live="polite"></p>
+
+      </form>
+
+    </section>
+
+    <main id="viewer">
+
+      <section id="player-area">
+
+        <div id="video-wrapper">
+
+          <div id="player-controls">
+            <button
+              id="assistant-toggle"
+              class="secondary icon-button"
+              type="button"
+              aria-pressed="false"
+              aria-label="Hide Assistant"
+              title="Hide Assistant"
+            >
+              <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path
+                  d="M4 5.75A3.75 3.75 0 0 1 7.75 2h8.5A3.75 3.75 0 0 1 20 5.75v4.5A3.75 3.75 0 0 1 16.25 14H12l-3.6 3.6A1 1 0 0 1 6 16.93V14A3.75 3.75 0 0 1 4 10.25v-4.5Z"
+                  fill="currentColor"
+                />
+              </svg>
+              <span class="sr-only">Hide Assistant</span>
+            </button>
+
+            <button
+              id="fullscreen-toggle"
+              class="secondary icon-button"
+              type="button"
+              aria-label="Enter Fullscreen"
+              title="Enter Fullscreen"
+            >
+              <svg class="icon icon-fullscreen-enter" viewBox="0 0 24 24" aria-hidden="true">
+                <path
+                  d="M4 4h6v2H6v4H4V4Zm10 0h6v6h-2V6h-4V4ZM4 14h2v4h4v2H4v-6Zm14 4v-4h2v6h-6v-2h4Z"
+                  fill="currentColor"
+                />
+              </svg>
+              <svg class="icon icon-fullscreen-exit" viewBox="0 0 24 24" aria-hidden="true">
+                <path
+                  d="M4 8h2V6h4V4H4v4Zm14-2v2h2V4h-6v2h4ZM6 14H4v6h6v-2H6v-4Zm12 4h-4v2h6v-6h-2v4Z"
+                  fill="currentColor"
+                />
+              </svg>
+              <span class="sr-only">Enter Fullscreen</span>
+            </button>
+          </div>
+
+          <video id="video-player" controls preload="metadata">
+
+            Your browser does not support the video tag.
+
+          </video>
+
+          <div id="subtitle-overlay" aria-live="polite" aria-atomic="true"></div>
+
+          </div>
+
+      </section>
+
+
+
+      <aside id="assistant">
+
+        <header class="assistant-header">
+
+          <div class="assistant-heading">
+
+            <h2>Companion</h2>
+
+            <span class="status-dot" title="Connected"></span>
+
+          </div>
+
+        </header>
+
+        <span id="timestamp">00:00:00</span>
+
+        <details id="context-container" class="context-collapsible" open>
+          <summary>
+            <span>Scene Context</span>
+            <span class="summary-indicator" aria-hidden="true"></span>
+          </summary>
+          <div class="context-body">
+            <pre id="context">(No dialogue yet.)</pre>
+          </div>
+        </details>
+
+
+
+        <div class="chat-window">
+
+          <div
+
+            id="chat-log"
+
+            class="chat-thread"
+
+            role="log"
+
+            aria-live="polite"
+
+            aria-label="Conversation"
+
+          ></div>
+
+
+
+          <form id="question-form" class="chat-input" autocomplete="off">
+
+            <div class="input-row">
+
+              <textarea
+
+                id="question"
+
+                rows="2"
+
+                placeholder="Message Movie Companion"
+
+                required
+
+              ></textarea>
+
+              <button
+
+                id="ask-button"
+
+                type="submit"
+
+                class="chat-send"
+
+                aria-label="Send message"
+
+              >
+
+                Send
+
+              </button>
+
+            </div>
+
+            <p class="input-hint">Press Enter to send, Shift+Enter for a new line.</p>
+
+          </form>
+
+        </div>
+
+      </aside>
+
+    </main>
+
+
+
+
+
+    <div
+      id="upload-overlay"
+      class="screen-overlay hidden"
+      role="status"
+      aria-live="polite"
+      aria-atomic="true"
+    >
+      <div class="overlay-card">
+        <div class="overlay-spinner" aria-hidden="true"></div>
+        <p id="overlay-message">Checking your video and subtitle files...</p>
+        <p class="overlay-subtext">This can take a moment for larger uploads.</p>
+      </div>
+    </div>
+
+    <script type="module" src="/static/app.js?v=20241041"></script>
+
+  </body>
+
+</html>
+

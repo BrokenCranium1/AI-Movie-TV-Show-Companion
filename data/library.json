@@ -1,0 +1,10 @@
+{
+  "videos": [
+    {
+      "video_id": "588504717b8a402e8705b0bad87ce38e",
+      "title": "Blade Runner",
+      "video_path": "media\\videos\\588504717b8a402e8705b0bad87ce38e.mp4",
+      "subtitle_path": "media\\subtitles\\588504717b8a402e8705b0bad87ce38e.srt"
+    }
+  ]
+}
