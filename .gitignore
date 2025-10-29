@@ -1,0 +1,10 @@
+__pycache__/
+*.py[cod]
+
+# Uploaded media assets
+media/videos/
+media/subtitles/
+
+# Temporary files
+*.tmp
+*.log
