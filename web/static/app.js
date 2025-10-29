@@ -149,7 +149,7 @@ function appendMessage(role, text) {
 
   const avatar = document.createElement("div");
   avatar.className = "chat-avatar";
-  avatar.textContent = role === "assistant" ? "AI" : "You";
+  avatar.textContent = role === "assistant" ? "Stevie" : "You";
   avatar.setAttribute("aria-hidden", "true");
 
   const bubble = document.createElement("div");
@@ -593,7 +593,7 @@ async function selectVideo(videoId) {
     if (!acknowledgeAutoplay) {
       appendMessage(
         "assistant",
-        "Autoplay was blocked. Please press play on the video."
+        "Hey, it's StevieTheTV - autoplay was blocked. Give the play button a tap to keep going."
       );
       acknowledgeAutoplay = true;
     }
@@ -618,7 +618,7 @@ async function askQuestion() {
 
   const maxAttempts = 3;
   let attempt = 0;
-  let lastError = "I’m having trouble answering right now.";
+  let lastError = "I'm having trouble answering right now.";
 
   while (attempt < maxAttempts) {
     try {
@@ -634,7 +634,7 @@ async function askQuestion() {
         }),
       });
       if (!response.ok) {
-        let message = "I’m having trouble answering right now.";
+        let message = "I'm having trouble answering right now.";
         const raw = await response.text();
         if (raw) {
           try {
@@ -819,4 +819,5 @@ document.addEventListener("keydown", (event) => {
 showPlayerControls(false);
 
 fetchVideos();
+
 

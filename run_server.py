@@ -1,4 +1,4 @@
-"""Launch the Movie Companion FastAPI server."""
+"""Launch the StevieTheTV FastAPI server."""
 
 from __future__ import annotations
 

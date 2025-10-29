@@ -1,4 +1,4 @@
-"""FastAPI application exposing the Movie Companion as a web platform."""
+"""FastAPI application exposing StevieTheTV as a web platform."""
 
 from __future__ import annotations
 
@@ -66,7 +66,7 @@ def create_app() -> FastAPI:
     _ensure_directories()
     library = LibraryStore(DATA_DIR / "library.json")
 
-    app = FastAPI(title="Movie Companion Web Platform", version="0.1.0")
+    app = FastAPI(title="StevieTheTV Web Platform", version="0.1.0")
 
     app.add_middleware(
         CORSMiddleware,

@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-labelledby="title desc">
+  <title id="title">StevieTheTV Mascot</title>
+  <desc id="desc">A friendly blue television with a smiling face.</desc>
+  <defs>
+    <linearGradient id="screenGlow" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#8fd3ff" />
+      <stop offset="100%" stop-color="#4a9fe3" />
+    </linearGradient>
+    <linearGradient id="bodyShade" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0d3a73" />
+      <stop offset="100%" stop-color="#082747" />
+    </linearGradient>
+  </defs>
+  <ellipse cx="60" cy="104" rx="32" ry="8" fill="rgba(10, 20, 40, 0.2)" />
+  <rect x="18" y="28" width="84" height="66" rx="18" fill="url(#bodyShade)" />
+  <rect x="27" y="37" width="66" height="48" rx="14" fill="url(#screenGlow)" stroke="#0b305c" stroke-width="3" />
+  <circle cx="50" cy="58" r="5" fill="#0b305c" />
+  <circle cx="70" cy="58" r="5" fill="#0b305c" />
+  <path d="M47 72c3.5 5 22.5 5 26 0" fill="none" stroke="#0b305c" stroke-width="4" stroke-linecap="round" />
+  <rect x="32" y="93" width="12" height="10" rx="4" fill="#082e55" />
+  <rect x="76" y="93" width="12" height="10" rx="4" fill="#082e55" />
+  <line x1="44" y1="27" x2="30" y2="12" stroke="#0d3a73" stroke-width="5" stroke-linecap="round" />
+  <line x1="76" y1="27" x2="90" y2="12" stroke="#0d3a73" stroke-width="5" stroke-linecap="round" />
+  <circle cx="30" cy="12" r="5" fill="#082e55" />
+  <circle cx="90" cy="12" r="5" fill="#082e55" />
+</svg>

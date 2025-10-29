@@ -1,4 +1,4 @@
-"""FastAPI server for the Movie Companion web platform."""
+"""FastAPI server for the StevieTheTV web platform."""
 
 from .api import create_app
 
