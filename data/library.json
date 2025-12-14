@@ -1,12 +1,6 @@
 {
   "videos": [
     {
-      "video_id": "34e7ac61bb844b1cbeed4bddf3bb7123",
-      "title": "Lovely Bones",
-      "video_path": "media\\videos\\34e7ac61bb844b1cbeed4bddf3bb7123.mp4",
-      "subtitle_path": "media\\subtitles\\34e7ac61bb844b1cbeed4bddf3bb7123.srt"
-    },
-    {
       "video_id": "ae24444ae8444ce1ab043042d042d1e2",
       "title": "Blade Runner",
       "video_path": "media\\videos\\ae24444ae8444ce1ab043042d042d1e2.mp4",

@@ -536,6 +536,7 @@ label {
   min-height: 0;
   max-height: 100%;
   overflow: hidden;
+  transition: border-color 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .chat-thread {
@@ -547,6 +548,7 @@ label {
   padding-right: 0.4rem;
   overscroll-behavior: contain;
   scrollbar-gutter: stable both-edges;
+  scroll-behavior: smooth;
 }
 
 .chat-thread::-webkit-scrollbar {
@@ -566,6 +568,19 @@ label {
   display: flex;
   gap: 0.6rem;
   align-items: flex-start;
+  animation: chatMessageEnter 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+  opacity: 0;
+}
+
+@keyframes chatMessageEnter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .chat-message.assistant {
@@ -591,6 +606,12 @@ label {
   color: var(--text-primary);
   flex-shrink: 0;
   box-shadow: inset 0 0 20px rgba(79, 140, 255, 0.15);
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease;
+}
+
+.chat-message:hover .chat-avatar {
+  transform: scale(1.05);
+  box-shadow: inset 0 0 20px rgba(79, 140, 255, 0.25), 0 0 12px rgba(79, 140, 255, 0.2);
 }
 
 .chat-message.user .chat-avatar {
@@ -609,7 +630,10 @@ label {
   border-radius: 14px;
   padding: 0.7rem 0.85rem;
   box-shadow: 0 16px 32px rgba(0, 0, 0, 0.35);
-  transition: border 0.2s ease, background 0.2s ease;
+  transition: border 0.25s cubic-bezier(0.16, 1, 0.3, 1), 
+              background 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .chat-message.assistant .chat-bubble {
@@ -634,6 +658,22 @@ label {
   font-size: 0.88rem;
   line-height: 1.45;
   word-break: break-word;
+  animation: chatContentFadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: 0.1s;
+  opacity: 0;
+}
+
+@keyframes chatContentFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.chat-message .chat-content {
+  animation-delay: 0.15s;
 }
 
 .chat-meta {
@@ -642,6 +682,20 @@ label {
   color: rgba(244, 247, 255, 0.5);
   display: flex;
   gap: 0.75rem;
+  opacity: 0;
+  animation: chatMetaFadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: 0.2s;
+}
+
+@keyframes chatMetaFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .chat-message.user .chat-meta {
@@ -663,13 +717,17 @@ label {
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 14px;
   padding: 0.6rem 0.75rem 0.6rem 0.9rem;
-  transition: box-shadow var(--transition-fast), transform var(--transition-fast), background var(--transition-fast);
+  transition: box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1), 
+              transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), 
+              background 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .chat-input:focus-within .input-row {
   box-shadow: 0 0 0 1px rgba(79, 140, 255, 0.55), 0 16px 34px rgba(12, 18, 29, 0.6);
   transform: translateY(-2px);
   background: rgba(16, 24, 38, 0.9);
+  border-color: rgba(133, 170, 255, 0.25);
 }
 
 #question {
@@ -695,6 +753,9 @@ label {
   font-weight: 600;
   min-width: 98px;
   box-shadow: 0 10px 20px rgba(79, 140, 255, 0.25);
+  transition: background 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .chat-send[disabled] {
@@ -704,6 +765,13 @@ label {
 
 .chat-send:not([disabled]):hover {
   background: var(--accent-soft);
+  box-shadow: 0 12px 24px rgba(79, 140, 255, 0.35);
+  transform: translateY(-1px);
+}
+
+.chat-send:not([disabled]):active {
+  transform: translateY(0);
+  box-shadow: 0 8px 16px rgba(79, 140, 255, 0.25);
 }
 
 .input-hint {
@@ -894,6 +962,12 @@ body.fullscreen-active #video-wrapper {
 
 .chat-bubble:hover {
   border-color: rgba(133, 170, 255, 0.35);
+  transform: translateY(-1px);
+  box-shadow: 0 18px 36px rgba(0, 0, 0, 0.4);
+}
+
+.chat-message.user .chat-bubble:hover {
+  box-shadow: 0 20px 38px rgba(44, 76, 140, 0.5);
 }
 
 .screen-overlay {

@@ -29,18 +29,30 @@ python -m pip install -r requirements.txt
 
 ### API Overview
 
-- `POST /videos` - upload video and optional subtitles.
-- `GET /videos` - list uploaded items.
-- `GET /videos/{id}/stream` - stream the video.
-- `GET /context?video_id=...&timestamp=...` - subtitle context up to timestamp.
-- `POST /ask` - ask StevieTheTV (body: `video_id`, `timestamp`, `question`, etc.).
+- `POST /videos` – upload video and optional subtitles.
+- `GET /videos` – list uploaded items.
+- `GET /videos/{id}/stream` – stream the video.
+- `GET /context?video_id=...&timestamp=...` – subtitle context up to timestamp.
+- `POST /ask` – ask StevieTheTV (body: `video_id`, `timestamp`, `question`, etc.).
 
 Files are stored under `media/`, metadata in `data/library.json`, and viewing history in `data/watched_history.json`.
 
 ## Model Configuration
 
-- **Ollama**: Run `ollama serve` and ensure the model (for example `ollama pull llama3`) is available. The UI requests provider `ollama` by default.
-- **OpenAI**: Set `OPENAI_API_KEY`, switch provider to `openai`, and choose a model such as `gpt-4o-mini`.
+- **Ollama (default)**: Install [Ollama](https://ollama.com/download), run `ollama pull llama3`, start `ollama serve`, and keep `provider=ollama`, `model=llama3`. The app talks to `http://localhost:11434` unless you set `OLLAMA_BASE_URL`.
+- **Groq (hosted alternative)**: If you need a cloud model, grab a `GROQ_API_KEY` and set `provider=groq` with a Groq-supported model (e.g., `llama3-8b-8192`).
+- **OpenAI**: Set `OPENAI_API_KEY`, keep `provider=openai`, and choose an OpenAI chat model.
+
+### Environment Variables
+
+| Name | Used for | Notes |
+| --- | --- | --- |
+| `OLLAMA_BASE_URL` | Ollama provider | Optional override (defaults to `http://localhost:11434`). |
+| `GROQ_API_KEY` | Groq provider | Only needed when `provider=groq`. |
+| `OPENAI_API_KEY` | OpenAI provider | Only needed when `provider=openai`. |
+| `SYSTEM_PROMPT` | AI behavior | Customize the AI assistant's personality and instructions. See `SYSTEM_PROMPT_EXAMPLE.md` for examples. |
+
+For local development, copy `.env.local.example` to `.env.local`, fill in the keys you care about, and `python run_server.py` will load them automatically.
 
 ## Development Notes
 
