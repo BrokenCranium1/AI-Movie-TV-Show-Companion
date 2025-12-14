@@ -2,10 +2,11 @@
 
 from __future__ import annotations
 
+import json
 import os
+import time
 from dataclasses import dataclass
 from typing import Dict, List, Optional
-import time
 
 import requests
 from openai import OpenAI
@@ -24,14 +25,28 @@ class LLMSettings:
     temperature: float = 0.4
     max_output_tokens: int = 350
     ollama_base_url: str = "http://localhost:11434"
+    system_prompt: Optional[str] = None  # If None, uses default prompt
 
 
 class LLMClient:
-    """Small wrapper so the rest of the project does not depend on OpenAI directly."""
+    """Small wrapper so the rest of the project does not depend on LLM vendors directly."""
 
     def __init__(self, settings: Optional[LLMSettings] = None, api_key: Optional[str] = None) -> None:
         self.settings = settings or LLMSettings()
         self.provider = self.settings.provider.lower()
+        
+        # Load system prompt from environment if not set
+        if self.settings.system_prompt is None:
+            self.settings.system_prompt = os.getenv(
+                "SYSTEM_PROMPT",
+                "You are a friendly movie or TV companion assistant. "
+                "Answer questions using only the provided context, watched history, and logical inference "
+                "based solely on events up to the specified timestamp. "
+                "Never mention or hint at spoilers, twists, or future events beyond the timestamp. "
+                "If the viewer requests major spoilers, gently refuse. "
+                "When the context is sparse, acknowledge uncertainty and suggest rechecking or continuing to watch. "
+                "Keep responses concise, helpful, and conversational."
+            )
 
         if self.provider == "openai":
             key = api_key or os.getenv("OPENAI_API_KEY")
@@ -44,6 +59,11 @@ class LLMClient:
         elif self.provider == "ollama":
             self._client = None
             self._ollama_url = self.settings.ollama_base_url.rstrip("/")
+        elif self.provider == "groq":
+            self._client = None
+            self._groq_key = api_key or os.getenv("GROQ_API_KEY")
+            if not self._groq_key:
+                raise LLMConfigurationError("GROQ_API_KEY is required when using the groq provider.")
         else:
             raise LLMConfigurationError(f"Unsupported provider: {self.settings.provider}")
 
@@ -72,15 +92,7 @@ class LLMClient:
             f"Viewer question: {question}"
         )
 
-        system_content = (
-            "You are a friendly movie or TV companion assistant. "
-            "Answer questions using only the provided context, watched history, and logical inference "
-            "based solely on events up to the specified timestamp. "
-            "Never mention or hint at spoilers, twists, or future events beyond the timestamp. "
-            "If the viewer requests major spoilers, gently refuse. "
-            "When the context is sparse, acknowledge uncertainty and suggest rechecking or continuing to watch. "
-            "Keep responses concise, helpful, and conversational."
-        )
+        system_content = self.settings.system_prompt
 
         return [
             {"role": "system", "content": system_content},
@@ -153,5 +165,34 @@ class LLMClient:
                 time.sleep(2 ** attempt)
 
             raise RuntimeError(f"Ollama request failed after retries: {last_error}") from last_error
+
+        if self.provider == "groq":
+            headers = {
+                "Authorization": f"Bearer {self._groq_key}",
+                "Content-Type": "application/json",
+            }
+            payload: Dict[str, object] = {
+                "model": self.settings.model,
+                "messages": messages,
+                "temperature": self.settings.temperature,
+                "stream": False,
+            }
+            if self.settings.max_output_tokens:
+                payload["max_tokens"] = self.settings.max_output_tokens
+            response = requests.post(
+                "https://api.groq.com/openai/v1/chat/completions",
+                headers=headers,
+                json=payload,
+                timeout=60,
+            )
+            if response.status_code >= 400:
+                detail = response.text
+                raise RuntimeError(f"Groq request failed ({response.status_code}): {detail}")
+            data = response.json()
+            choice = (data.get("choices") or [{}])[0]
+            content = choice.get("message", {}).get("content")
+            if not content:
+                raise RuntimeError("Groq returned an empty response.")
+            return str(content).strip()
 
         raise LLMConfigurationError(f"Unsupported provider at runtime: {self.provider}")

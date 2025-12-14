@@ -22,6 +22,7 @@ class CompanionConfig:
     temperature: float = 0.4
     max_output_tokens: int = 350
     ollama_base_url: str = "http://localhost:11434"
+    system_prompt: Optional[str] = None
 
 
 class MovieCompanion:
@@ -36,6 +37,7 @@ class MovieCompanion:
             temperature=self.config.temperature,
             max_output_tokens=self.config.max_output_tokens,
             ollama_base_url=self.config.ollama_base_url,
+            system_prompt=self.config.system_prompt,
         )
         self.llm = LLMClient(llm_settings, api_key=api_key)
 

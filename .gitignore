@@ -5,6 +5,9 @@ __pycache__/
 media/videos/
 media/subtitles/
 
+# Local environment files
+.env
+.env.local
 # Temporary files
 *.tmp
 *.log
