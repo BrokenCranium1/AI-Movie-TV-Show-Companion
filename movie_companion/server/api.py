@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import os
 import tempfile
 import uuid
 from contextlib import suppress
@@ -22,7 +23,7 @@ from fastapi import (
     Body,
 )
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, JSONResponse, Response
+from fastapi.responses import FileResponse, Response
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
@@ -36,16 +37,28 @@ from movie_companion.subtitles import (
 from movie_companion.time_utils import parse_timestamp, format_seconds
 
 
+# ------------------------------------------------------------
+# Environment detection
+# ------------------------------------------------------------
+IS_VERCEL = os.getenv("VERCEL") == "1"
+
 BASE_DIR = Path(__file__).resolve().parents[2]
-DATA_DIR = BASE_DIR / "data"
-MEDIA_DIR = BASE_DIR / "media"
+
+# Read-only (bundled with repo)
+STATIC_DIR = BASE_DIR / "web" / "static"
+
+# Writable runtime directory
+RUNTIME_DIR = Path("/tmp") if IS_VERCEL else BASE_DIR
+
+DATA_DIR = RUNTIME_DIR / "data"
+MEDIA_DIR = RUNTIME_DIR / "media"
 VIDEO_DIR = MEDIA_DIR / "videos"
 SUBTITLE_DIR = MEDIA_DIR / "subtitles"
-STATIC_DIR = BASE_DIR / "web" / "static"
 
 
 def _ensure_directories() -> None:
-    for path in (DATA_DIR, MEDIA_DIR, VIDEO_DIR, SUBTITLE_DIR, STATIC_DIR):
+    # Only create writable directories
+    for path in (DATA_DIR, MEDIA_DIR, VIDEO_DIR, SUBTITLE_DIR):
         path.mkdir(parents=True, exist_ok=True)
 
 
@@ -108,8 +121,6 @@ def create_app() -> FastAPI:
         ]
 
     async def _validate_subtitle_upload(upload: UploadFile) -> None:
-        """Ensure an uploaded subtitle file can be parsed before persisting it."""
-
         suffix = Path(upload.filename or "subtitles.srt").suffix or ".srt"
         temp_path: Path | None = None
         try:
@@ -142,7 +153,7 @@ def create_app() -> FastAPI:
 
     @app.post("/videos")
     async def upload_video(
-        title: str = Form(..., description="Title to display for the video."),
+        title: str = Form(...),
         video: UploadFile = File(...),
         subtitles: UploadFile | None = File(None),
         lib: LibraryStore = Depends(get_library),
@@ -161,12 +172,12 @@ def create_app() -> FastAPI:
             destination = SUBTITLE_DIR / f"{video_id}{subtitle_ext}"
             await _validate_subtitle_upload(subtitles)
             await _save_upload(subtitles, destination)
-            subtitle_path = str(destination.relative_to(BASE_DIR))
+            subtitle_path = str(destination.relative_to(RUNTIME_DIR))
 
         entry = LibraryEntry(
             video_id=video_id,
             title=title.strip(),
-            video_path=str(video_path.relative_to(BASE_DIR)),
+            video_path=str(video_path.relative_to(RUNTIME_DIR)),
             subtitle_path=subtitle_path,
         )
         lib.upsert_video(entry)
@@ -178,7 +189,7 @@ def create_app() -> FastAPI:
         entry = lib.get_video(video_id)
         if not entry:
             raise HTTPException(status_code=404, detail="Video not found.")
-        path = BASE_DIR / entry.video_path
+        path = RUNTIME_DIR / entry.video_path
         if not path.exists():
             raise HTTPException(status_code=404, detail="Video file missing on disk.")
         return FileResponse(path)
@@ -188,7 +199,7 @@ def create_app() -> FastAPI:
         entry = lib.get_video(video_id)
         if not entry or not entry.subtitle_path:
             raise HTTPException(status_code=404, detail="Subtitles not found.")
-        path = BASE_DIR / entry.subtitle_path
+        path = RUNTIME_DIR / entry.subtitle_path
         if not path.exists():
             raise HTTPException(status_code=404, detail="Subtitle file missing on disk.")
         return FileResponse(path)
@@ -202,7 +213,7 @@ def create_app() -> FastAPI:
         for relative_path in (entry.video_path, entry.subtitle_path):
             if not relative_path:
                 continue
-            path = BASE_DIR / relative_path
+            path = RUNTIME_DIR / relative_path
             with suppress(FileNotFoundError, IsADirectoryError):
                 path.unlink()
 
@@ -220,7 +231,7 @@ def create_app() -> FastAPI:
             raise HTTPException(status_code=404, detail="Video not found.")
         if not entry.subtitle_path:
             return {"context": "", "timestamp": format_seconds(parse_timestamp(timestamp))}
-        path = BASE_DIR / entry.subtitle_path
+        path = RUNTIME_DIR / entry.subtitle_path
         if not path.exists():
             raise HTTPException(status_code=404, detail="Subtitle file missing on disk.")
         subtitles = load_subtitles(path)
@@ -251,8 +262,7 @@ def create_app() -> FastAPI:
         if not entry:
             raise HTTPException(status_code=404, detail="Video not found.")
 
-        subtitles_path = entry.subtitle_path
-        if not subtitles_path:
+        if not entry.subtitle_path:
             raise HTTPException(status_code=400, detail="Subtitles are required for context.")
 
         seconds = parse_timestamp(payload.timestamp)
@@ -263,7 +273,7 @@ def create_app() -> FastAPI:
                 None,
                 lambda: companion.answer_question(
                     title=entry.title,
-                    subtitle_path=BASE_DIR / subtitles_path,
+                    subtitle_path=RUNTIME_DIR / entry.subtitle_path,
                     timestamp=seconds,
                     question=payload.question,
                     previously_watched=payload.previously_watched,
