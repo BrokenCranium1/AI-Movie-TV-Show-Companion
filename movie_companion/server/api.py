@@ -40,6 +40,12 @@ def create_app() -> FastAPI:
             if index_path.exists():
                 return FileResponse(str(index_path))
             return {"message": "StevieTheTV API - Frontend not found"}
+    elif os.getenv("VERCEL"):
+        # On Vercel, serve index.html for root and SPA routes
+        @app.get("/")
+        async def read_root():
+            # Try to read from public directory (Vercel serves it automatically, but we need a fallback)
+            return {"message": "StevieTheTV API - Use /static/index.html or configure Vercel routing"}
 
     app.add_middleware(
         CORSMiddleware,

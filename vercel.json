@@ -1,8 +1,7 @@
 {
   "buildCommand": "npm install && npm run build",
-  "routes": [
-    { "src": "/api/(.*)", "dest": "/api/index.py" },
-    { "src": "/(.*)", "dest": "/api/index.py" }
+  "rewrites": [
+    { "source": "/api/(.*)", "destination": "/api/index.py" }
   ]
 }
   
