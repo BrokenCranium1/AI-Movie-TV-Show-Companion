@@ -211,7 +211,7 @@ async function handleUpload(event) {
   setUploadOverlay(true, "Checking your video and subtitle files...");
 
   try {
-    const response = await fetch("/videos", {
+    const response = await fetch("/api/videos", {
       method: "POST",
       body: formData,
     });
@@ -232,7 +232,7 @@ async function handleUpload(event) {
 }
 
 async function fetchVideos() {
-  const response = await fetch("/videos");
+  const response = await fetch("/api/videos");
   const items = await response.json();
 
   const previous = currentVideoId;
@@ -433,7 +433,7 @@ async function handleDeleteRequest(videoId, title) {
   if (!confirmed) return;
 
   try {
-    const response = await fetch(`/videos/${videoId}`, { method: "DELETE" });
+    const response = await fetch(`/api/videos/${videoId}`, { method: "DELETE" });
     if (!response.ok) {
       const message = await response.text();
       throw new Error(message || "Failed to remove video.");
@@ -462,7 +462,7 @@ function attachSubtitles(videoId) {
   track.kind = "subtitles";
   track.label = "Subtitles";
   track.srclang = "en";
-  track.src = `/videos/${videoId}/subtitles`;
+  track.src = `/api/videos/${videoId}/subtitles`;
   videoPlayer.appendChild(track);
 }
 
@@ -475,11 +475,32 @@ function scheduleContextUpdate() {
     timestampLabel.textContent = formatTime(seconds);
 
     try {
-      const params = new URLSearchParams({
-        video_id: currentVideoId,
-        timestamp: Math.floor(seconds).toString(),
+      const entry = libraryItems.find((item) => item.video_id === currentVideoId);
+      if (!entry) return;
+      
+      // Fetch raw subtitle text for context endpoint
+      const subtitleResponse = await fetch(`/api/videos/${currentVideoId}/subtitles`);
+      if (!subtitleResponse.ok) {
+        contextEl.textContent = "(No dialogue yet.)";
+        return;
+      }
+      const subtitlesText = await subtitleResponse.text();
+      
+      if (!subtitlesText) {
+        contextEl.textContent = "(No dialogue yet.)";
+        return;
+      }
+      
+      const response = await fetch("/api/context", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: entry.title || "Unknown",
+          timestamp: Math.floor(seconds),
+          subtitles_text: subtitlesText,
+          question: "",
+        }),
       });
-      const response = await fetch(`/context?${params.toString()}`);
       if (!response.ok) return;
       const data = await response.json();
       contextEl.textContent = data.context || "(No dialogue yet.)";
@@ -540,7 +561,7 @@ async function loadSubtitleCues(videoId) {
     return [];
   }
   try {
-    const response = await fetch(`/videos/${videoId}/subtitles`);
+    const response = await fetch(`/api/videos/${videoId}/subtitles`);
     if (!response.ok) throw new Error("Failed to fetch subtitles");
     const text = await response.text();
     const cues = parseSRT(text);
@@ -585,7 +606,7 @@ async function selectVideo(videoId) {
     return;
   }
 
-  videoPlayer.src = `/videos/${videoId}/stream`;
+  videoPlayer.src = `/api/videos/${videoId}/stream`;
   attachSubtitles(videoId);
   activeSubtitleCues = await loadSubtitleCues(videoId);
 
@@ -620,14 +641,42 @@ async function askQuestion() {
   let attempt = 0;
   let lastError = "I'm having trouble answering right now.";
 
+  // Get video entry and subtitles
+  const entry = libraryItems.find((item) => item.video_id === currentVideoId);
+  if (!entry) {
+    if (placeholder.content) {
+      renderRichText(placeholder.content, "Error: Video not found in library.");
+    }
+    submitButton.disabled = false;
+    return;
+  }
+
+  // Fetch raw subtitle text
+  let subtitlesText = "";
+  try {
+    const subtitleResponse = await fetch(`/api/videos/${currentVideoId}/subtitles`);
+    if (subtitleResponse.ok) {
+      subtitlesText = await subtitleResponse.text();
+    } else {
+      throw new Error("Failed to fetch subtitles");
+    }
+  } catch (error) {
+    if (placeholder.content) {
+      renderRichText(placeholder.content, "Error: Could not load subtitles. Please try again.");
+    }
+    submitButton.disabled = false;
+    return;
+  }
+
   while (attempt < maxAttempts) {
     try {
-      const response = await fetch("/ask", {
+      const response = await fetch("/api/ask", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          video_id: currentVideoId,
+          title: entry.title || "Unknown",
           timestamp: Math.floor(videoPlayer.currentTime),
+          subtitles_text: subtitlesText,
           question,
           provider: "ollama",
           model: "llama3",
