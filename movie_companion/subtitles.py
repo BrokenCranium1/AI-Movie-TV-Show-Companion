@@ -146,3 +146,34 @@ def extract_context(
         max_characters=max_characters,
     )
     return "\n".join(lines).strip()
+
+def extract_context_from_text(
+    subtitles_text: str,
+    current_time: int | str,
+    *,
+    window_seconds: int | None = DEFAULT_CONTEXT_WINDOW_SECONDS,
+    max_characters: int | None = DEFAULT_CONTEXT_MAX_CHARACTERS,
+) -> str:
+    """
+    Extract subtitle context from raw SRT text (Vercel-safe, no filesystem).
+
+    Args:
+        subtitles_text: Raw `.srt` file contents as a string.
+        current_time: Timestamp in seconds or HH:MM:SS.
+        window_seconds: Optional rolling time window.
+        max_characters: Optional character limit.
+
+    Returns:
+        Subtitle context string.
+    """
+    try:
+        subtitles = pysrt.from_string(subtitles_text)
+    except Exception as exc:
+        raise SubtitleLoaderError(f"Failed to parse subtitle text: {exc}") from exc
+
+    return extract_context(
+        subtitles,
+        current_time,
+        window_seconds=window_seconds,
+        max_characters=max_characters,
+    )
