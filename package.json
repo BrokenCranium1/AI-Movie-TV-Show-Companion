@@ -1,0 +1,17 @@
+{
+  "name": "steviethetv",
+  "version": "1.0.0",
+  "description": "AI Movie/TV Show Companion - TypeScript Frontend",
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc --watch",
+    "clean": "rm -rf public/app.js public/app.js.map"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.3"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
+

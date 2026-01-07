@@ -11,3 +11,9 @@ media/subtitles/
 # Temporary files
 *.tmp
 *.log
+
+# TypeScript build artifacts
+node_modules/
+public/app.js
+public/app.js.map
+*.tsbuildinfo
