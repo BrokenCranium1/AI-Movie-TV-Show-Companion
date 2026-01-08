@@ -26,26 +26,21 @@ from movie_companion.time_utils import parse_timestamp, format_seconds
 def create_app() -> FastAPI:
     app = FastAPI(title="StevieTheTV", version="0.1.0")
     
-    # Serve static files for local development
-    # Check if we're running locally (not on Vercel)
+    # Serve static files for local development only
+    # On Vercel, static files are served automatically from public/ directory
     public_dir = Path(__file__).parent.parent.parent / "public"
     if public_dir.exists() and os.getenv("VERCEL") is None:
         # Mount static files
         app.mount("/static", StaticFiles(directory=str(public_dir)), name="static")
         
-        # Serve index.html at root
+        # Serve index.html at root for local development
         @app.get("/")
         async def read_root():
             index_path = public_dir / "index.html"
             if index_path.exists():
                 return FileResponse(str(index_path))
             return {"message": "StevieTheTV API - Frontend not found"}
-    elif os.getenv("VERCEL"):
-        # On Vercel, serve index.html for root and SPA routes
-        @app.get("/")
-        async def read_root():
-            # Try to read from public directory (Vercel serves it automatically, but we need a fallback)
-            return {"message": "StevieTheTV API - Use /static/index.html or configure Vercel routing"}
+    # On Vercel, don't add a root route - let Vercel serve public/index.html automatically
 
     app.add_middleware(
         CORSMiddleware,

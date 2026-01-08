@@ -2,6 +2,9 @@
   "buildCommand": "npm install && npm run build",
   "rewrites": [
     { "source": "/api/(.*)", "destination": "/api/index.py" }
+  ],
+  "routes": [
+    { "src": "/", "dest": "/public/index.html" }
   ]
 }
   
